@@ -2,6 +2,7 @@ package main
 
 import (
 	"trade/configs"
+	"trade/routes"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -12,9 +13,7 @@ func main() {
 	// run database
 	configs.ConnectDB()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.JSON(&fiber.Map{"data": "Init Trader backend"})
-	})
+	routes.UserRoute(app)
 
 	app.Listen(":6000")
 }
