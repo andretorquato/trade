@@ -51,16 +51,26 @@ func GetMarketDataByRange(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	init_date := c.Params("init_date")
 	end_date := c.Params("end_date")
-	var market []models.Market
+	// var market []models.Market
 	defer cancel()
 
 	// TODO
 	// [] FILTER BY RANGE
-	err := marketCollection.Find(ctx, bson.M{"timestamp": bson.M{"$gte": init_date, "$lte": end_date}}).All(ctx, &market)
-
+	filter := bson.M{
+		"timestamp": bson.M{
+			"$gte": init_date,
+			"$lt":  end_date,
+		},
+	}
+	res, err := marketCollection.CountDocuments(ctx, filter)
+	// market = append(res, models.Market{
+	// 		Id:        primitive.NewObjectID(),
+	// 		Data:      res.Data,
+	// 		Timestamp: primitive.Timestamp{T: uint32(time.Now().Unix())},
+	// 	})
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.MarketResponse{Status: http.StatusInternalServerError, Message: "Error", Data: &fiber.Map{"data": err.Error()}})
 	}
 
-	return c.Status(http.StatusOK).JSON(responses.MarketResponse{Status: http.StatusOK, Message: "Success", Data: &fiber.Map{"data": market}})
+	return c.Status(http.StatusOK).JSON(responses.MarketResponse{Status: http.StatusOK, Message: "Success", Data: &fiber.Map{"data": res}})
 }
