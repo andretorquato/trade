@@ -2,12 +2,15 @@
 import { defineComponent } from "vue";
 import axios from "axios";
 import Wallet from "./components/wallet/wallet.vue";
-// import MarketCapController from "./controllers/market-cap/market-cap-controller";
+import { CoinMarketCapRemote } from "./remote/coinmarketcap-remote";
+import { TradeApiRemote } from "./remote/tradeapi-remote";
 
 export default defineComponent({
   data() {
     const marketData: any = null;
-    return { marketData };
+    const coinMarketCapRemote = new CoinMarketCapRemote();
+    const tradeApiRemote = new TradeApiRemote();
+    return { marketData, coinMarketCapRemote, tradeApiRemote };
   },
   components: {
     Wallet
@@ -16,22 +19,17 @@ export default defineComponent({
     async getMarketData() {
       const savedData = localStorage.getItem("marketData");
       if (!savedData) {
-        const response = await axios.get(
-          "http://localhost:5000/cryptocurrency/listings/latest"
-        );
-        if (response.status === 200) {
-          localStorage.setItem("marketData", JSON.stringify(response.data));
-          this.marketData = response.data;
-        }
+        this.coinMarketCapRemote.getMarketData().then(async (data) => {
+          localStorage.setItem("marketData", JSON.stringify(data));
+          this.marketData = data;
+          const response = await this.tradeApiRemote.saveDataMarket(this.marketData);
+          console.log(response);
+        });
       } else {
-        // MarketCapController.getMarketCap({}, {});
         this.marketData = JSON.parse(savedData);
+         const response = await this.tradeApiRemote.saveDataMarket(this.marketData);
+          console.log(response);
         console.log(this.marketData);
-        // one hour = 3600000 ms
-        // struct
-        // {
-        //
-        // }
       }
     },
   },

@@ -3,6 +3,6 @@ const getMarketCap = async () => {
 }
 
 const MarketCapController = {
-		getMarketCap
+	getMarketCap
 };
 export default MarketCapController;
