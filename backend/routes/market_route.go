@@ -12,5 +12,6 @@ func UserRoute(app *fiber.App) {
 		return c.JSON(&fiber.Map{"data": "online"})
 	})
 
-	app.Post("/new-log", controllers.CreateMarketData)
+	app.Post("/new-market-data", controllers.CreateMarketData)
+	app.Post("/filter", controllers.GetMarketDataByRange)
 }
