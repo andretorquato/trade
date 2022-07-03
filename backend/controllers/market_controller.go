@@ -58,11 +58,11 @@ func GetMarketDataByRange(c *fiber.Ctx) error {
 	// [] FILTER BY RANGE
 	filter := bson.M{
 		"timestamp": bson.M{
-			"$gte": init_date,
+			"$gte": primitive.Timestamp{T: uint32(time.Parse("2006-01-02 15:04:05", init_date).Unix())},
 			"$lt":  end_date,
 		},
 	}
-	res, err := marketCollection.CountDocuments(ctx, filter)
+	res, err := marketCollection.Find(ctx, filter)
 	// market = append(res, models.Market{
 	// 		Id:        primitive.NewObjectID(),
 	// 		Data:      res.Data,

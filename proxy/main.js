@@ -31,8 +31,9 @@ router.post("/trade-api/*", (req, res) => {
       res.send(err.response.data);
     });
 });
-app.get("/coinmarketcap", (req, res) => {
-  let url = `https://pro-api.coinmarketcap.com/v1${req.originalUrl}`;
+router.get("/coinmarketcap/*", (req, res) => {
+  const request_url = req.originalUrl.replace("/coinmarketcap", "");
+  let url = `https://pro-api.coinmarketcap.com/v1${request_url}`;
   axios
     .get(url, { headers: { "X-CMC_PRO_API_KEY": process.env.CMC_API_KEY } })
     .then((response) => {
@@ -43,10 +44,6 @@ app.get("/coinmarketcap", (req, res) => {
       res.send(err.response.data);
     });
 });
-// app.get("/*", (req, res) => {
-//   console.log(req);
-//   res.send({status: "ok"})
-// });
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {

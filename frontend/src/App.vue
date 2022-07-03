@@ -1,6 +1,5 @@
 <script lang="ts">
 import { defineComponent } from "vue";
-import axios from "axios";
 import Wallet from "./components/wallet/wallet.vue";
 import { CoinMarketCapRemote } from "./remote/coinmarketcap-remote";
 import { TradeApiRemote } from "./remote/tradeapi-remote";
@@ -20,16 +19,15 @@ export default defineComponent({
       const savedData = localStorage.getItem("marketData");
       if (!savedData) {
         this.coinMarketCapRemote.getMarketData().then(async (data) => {
+          if (data.hasOwnProperty("error")) return 
           localStorage.setItem("marketData", JSON.stringify(data));
+          
           this.marketData = data;
           const response = await this.tradeApiRemote.saveDataMarket(this.marketData);
           console.log(response);
         });
       } else {
         this.marketData = JSON.parse(savedData);
-         const response = await this.tradeApiRemote.saveDataMarket(this.marketData);
-          console.log(response);
-        console.log(this.marketData);
       }
     },
   },
