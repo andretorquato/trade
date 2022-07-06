@@ -36,7 +36,7 @@ func CreateMarketData(c *fiber.Ctx) error {
 	newMarketData := models.Market{
 		Id:        primitive.NewObjectID(),
 		Data:      market.Data,
-		Timestamp: primitive.Timestamp{T: uint32(time.Now().Unix())},
+		Timestamp: time.Now().UTC(),
 	}
 
 	_, err := marketCollection.InsertOne(ctx, newMarketData)
@@ -49,25 +49,30 @@ func CreateMarketData(c *fiber.Ctx) error {
 
 func GetMarketDataByRange(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	init_date := c.Params("init_date")
-	end_date := c.Params("end_date")
+	initialDateParam := c.Params("init_date")
+	endDateParam := c.Params("end_date")
 	// var market []models.Market
 	defer cancel()
 
+	const (
+		layoutISO = "2006-01-02T15:04:05.000Z"
+	)
+	formattedInitialDate, _ := time.Parse(layoutISO, initialDateParam)
+	formattedEndDate, _ := time.Parse(layoutISO, endDateParam)
 	// TODO
 	// [] FILTER BY RANGE
 	filter := bson.M{
 		"timestamp": bson.M{
-			"$gte": primitive.Timestamp{T: uint32(time.Parse("2006-01-02 15:04:05", init_date).Unix())},
-			"$lt":  end_date,
+			"$gt": formattedInitialDate,
+			"$lt": formattedEndDate,
 		},
 	}
 	res, err := marketCollection.Find(ctx, filter)
 	// market = append(res, models.Market{
-	// 		Id:        primitive.NewObjectID(),
-	// 		Data:      res.Data,
-	// 		Timestamp: primitive.Timestamp{T: uint32(time.Now().Unix())},
-	// 	})
+	// 	Id:        primitive.NewObjectID(),
+	// 	Data:      res.Data,
+	// 	Timestamp: res.Current
+	// })
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.MarketResponse{Status: http.StatusInternalServerError, Message: "Error", Data: &fiber.Map{"data": err.Error()}})
 	}
