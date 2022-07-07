@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 	"trade/configs"
@@ -47,18 +49,32 @@ func CreateMarketData(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(responses.MarketResponse{Status: http.StatusCreated, Message: "Success", Data: &fiber.Map{"data": newMarketData.Data}})
 }
 
+type Range struct {
+	InitialDate string `json:"init_date" xml:"init_date" form:"init_date"`
+	EndDate     string `json:"end_date" xml:"end_date" form:"end_date"`
+}
+
 func GetMarketDataByRange(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	initialDateParam := c.Params("init_date")
-	endDateParam := c.Params("end_date")
+	r := new(Range)
+
+	if err := c.BodyParser(r); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(responses.MarketResponse{Status: http.StatusBadRequest, Message: "Error", Data: &fiber.Map{"data": err.Error()}})
+	}
+	// log.Println(r.EndDate)
+	// initialDateParam := c.BodyParser("initial_date")
+	// endDateParam := c.BodyParser()
 	// var market []models.Market
 	defer cancel()
 
 	const (
 		layoutISO = "2006-01-02T15:04:05.000Z"
 	)
-	formattedInitialDate, _ := time.Parse(layoutISO, initialDateParam)
-	formattedEndDate, _ := time.Parse(layoutISO, endDateParam)
+	// fmt.Printf("%s\n param", initialDateParam)
+	formattedInitialDate, _ := time.Parse(layoutISO, r.InitialDate)
+	formattedEndDate, _ := time.Parse(layoutISO, r.EndDate)
+	fmt.Printf("%v\n", formattedInitialDate)
+	fmt.Printf("%v\n", formattedEndDate)
 	// TODO
 	// [] FILTER BY RANGE
 	filter := bson.M{
@@ -67,15 +83,21 @@ func GetMarketDataByRange(c *fiber.Ctx) error {
 			"$lt": formattedEndDate,
 		},
 	}
+
 	res, err := marketCollection.Find(ctx, filter)
 	// market = append(res, models.Market{
 	// 	Id:        primitive.NewObjectID(),
 	// 	Data:      res.Data,
 	// 	Timestamp: res.Current
 	// })
+	var result []bson.M
+	if err = res.All(context.TODO(), &result); err != nil {
+		log.Fatal(err)
+	}
+
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.MarketResponse{Status: http.StatusInternalServerError, Message: "Error", Data: &fiber.Map{"data": err.Error()}})
 	}
 
-	return c.Status(http.StatusOK).JSON(responses.MarketResponse{Status: http.StatusOK, Message: "Success", Data: &fiber.Map{"data": res}})
+	return c.Status(http.StatusOK).JSON(responses.MarketResponse{Status: http.StatusOK, Message: "Success", Data: &fiber.Map{"data": result}})
 }
