@@ -57,26 +57,21 @@ type Range struct {
 func GetMarketDataByRange(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	r := new(Range)
+	defer cancel()
 
 	if err := c.BodyParser(r); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(responses.MarketResponse{Status: http.StatusBadRequest, Message: "Error", Data: &fiber.Map{"data": err.Error()}})
 	}
-	// log.Println(r.EndDate)
-	// initialDateParam := c.BodyParser("initial_date")
-	// endDateParam := c.BodyParser()
-	// var market []models.Market
-	defer cancel()
 
 	const (
 		layoutISO = "2006-01-02T15:04:05.000Z"
 	)
-	// fmt.Printf("%s\n param", initialDateParam)
+
 	formattedInitialDate, _ := time.Parse(layoutISO, r.InitialDate)
 	formattedEndDate, _ := time.Parse(layoutISO, r.EndDate)
 	fmt.Printf("%v\n", formattedInitialDate)
 	fmt.Printf("%v\n", formattedEndDate)
-	// TODO
-	// [] FILTER BY RANGE
+
 	filter := bson.M{
 		"timestamp": bson.M{
 			"$gt": formattedInitialDate,
@@ -85,11 +80,7 @@ func GetMarketDataByRange(c *fiber.Ctx) error {
 	}
 
 	res, err := marketCollection.Find(ctx, filter)
-	// market = append(res, models.Market{
-	// 	Id:        primitive.NewObjectID(),
-	// 	Data:      res.Data,
-	// 	Timestamp: res.Current
-	// })
+
 	var result []bson.M
 	if err = res.All(context.TODO(), &result); err != nil {
 		log.Fatal(err)
