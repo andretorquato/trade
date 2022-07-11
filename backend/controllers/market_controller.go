@@ -18,7 +18,6 @@ import (
 )
 
 var marketCollection *mongo.Collection = configs.GetCollection(configs.DB, "market")
-var validate = validator.New()
 
 func CreateMarketData(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -31,7 +30,7 @@ func CreateMarketData(c *fiber.Ctx) error {
 	}
 
 	// use the validator library to validate required fields
-	if validationErro := validate.Struct(&market); validationErro != nil {
+	if validationErro := validator.New().Struct(&market); validationErro != nil {
 		return c.Status(http.StatusBadRequest).JSON(responses.MarketResponse{Status: http.StatusBadRequest, Message: "Error", Data: &fiber.Map{"data": validationErro.Error()}})
 	}
 
