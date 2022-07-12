@@ -17,6 +17,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type Range struct {
+	InitialDate string `json:"init_date" xml:"init_date" form:"init_date"`
+	EndDate     string `json:"end_date" xml:"end_date" form:"end_date"`
+}
+
 var marketCollection *mongo.Collection = configs.GetCollection(configs.DB, "market")
 
 func CreateMarketData(c *fiber.Ctx) error {
@@ -46,11 +51,6 @@ func CreateMarketData(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).JSON(responses.MarketResponse{Status: http.StatusCreated, Message: "Success", Data: &fiber.Map{"data": newMarketData.Data}})
-}
-
-type Range struct {
-	InitialDate string `json:"init_date" xml:"init_date" form:"init_date"`
-	EndDate     string `json:"end_date" xml:"end_date" form:"end_date"`
 }
 
 func GetMarketDataByRange(c *fiber.Ctx) error {

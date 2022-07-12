@@ -13,7 +13,8 @@ func main() {
 	// run database
 	configs.ConnectDB()
 
-	routes.UserRoute(app)
+	routes.MarketRouter(app)
+	routes.WalletRouter(app)
 
 	app.Listen(":6000")
 }
